@@ -109,11 +109,34 @@ void __appExit(void) {
 }
 
 struct LdnMitmManagerOptions {
-    static const size_t PointerBufferSize = 0x800;
+    static const size_t PointerBufferSize = 0x1000;
     static const size_t MaxDomains = 0x10;
     static const size_t MaxDomainObjects = 0x4000;
 };
-using LdnMitmManager = WaitableManager<LdnMitmManagerOptions>;
+
+class LogServiceSession : public ServiceSession {
+    public:
+        LogServiceSession(Handle s_h, size_t pbs, ServiceObjectHolder &&h) : ServiceSession(s_h, pbs, std::move(h)) { }
+        virtual void PreProcessRequest(IpcResponseContext *ctx) override {
+            char buf[64];
+            sprintf(buf, "req %" PRIu64 "\n", ctx->cmd_id);
+            LogStr(buf);
+        }
+        virtual void PostProcessResponse(IpcResponseContext *ctx) override {
+            char buf[64];
+            sprintf(buf, "res %" PRIu64 " rc %d\n", ctx->cmd_id, ctx->rc);
+            LogStr(buf);
+        }
+};
+template<typename ManagerOptions>
+class LdnWaitableManager : public WaitableManager<ManagerOptions> {
+    public:
+        LdnWaitableManager(u32 n, u32 ss = 0x8000) : WaitableManager<ManagerOptions>(n, ss) {};
+        virtual void AddSession(Handle server_h, ServiceObjectHolder &&service) override {
+            this->AddWaitable(new LogServiceSession(server_h, ManagerOptions::PointerBufferSize, std::move(service)));
+        }
+};
+using LdnMitmManager = LdnWaitableManager<LdnMitmManagerOptions>;
 
 int main(int argc, char **argv)
 {

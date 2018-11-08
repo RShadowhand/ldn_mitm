@@ -21,8 +21,11 @@
 #include "ldn_icommunication.hpp"
 
 Result LdnMitMService::CreateUserLocalCommunicationService(Out<std::shared_ptr<ICommunicationInterface>> out) {
+    LogStr("CreateUserLocalCommunicationService\n");
     Result rc = 0;
 
+    auto comm = std::make_shared<ICommunicationInterface>();
     out.SetValue(std::move(comm));
+
     return rc;
 }

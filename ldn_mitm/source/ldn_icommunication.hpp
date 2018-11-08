@@ -83,8 +83,6 @@ class ICommunicationInterface : public IServiceObject {
             }
         };
     private:
-        static Result nifmGetIpConfig(u32* address, u32* netmask);
-        static Result nifmGetIpConfig(u32* address);
         Result get_fake_mac(u8 mac[6]);
         void set_state(CommState new_state) {
             this->state = new_state;
