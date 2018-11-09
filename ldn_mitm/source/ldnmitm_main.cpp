@@ -121,11 +121,13 @@ class LogServiceSession : public ServiceSession {
             char buf[64];
             sprintf(buf, "req %" PRIu64 "\n", ctx->cmd_id);
             LogStr(buf);
+            LogHex(armGetTls(), 0x100);
         }
         virtual void PostProcessResponse(IpcResponseContext *ctx) override {
             char buf[64];
             sprintf(buf, "res %" PRIu64 " rc %d\n", ctx->cmd_id, ctx->rc);
             LogStr(buf);
+            LogHex(armGetTls(), 0x100);
         }
 };
 template<typename ManagerOptions>
@@ -133,6 +135,7 @@ class LdnWaitableManager : public WaitableManager<ManagerOptions> {
     public:
         LdnWaitableManager(u32 n, u32 ss = 0x8000) : WaitableManager<ManagerOptions>(n, ss) {};
         virtual void AddSession(Handle server_h, ServiceObjectHolder &&service) override {
+            LogStr("AddSession\n");
             this->AddWaitable(new LogServiceSession(server_h, ManagerOptions::PointerBufferSize, std::move(service)));
         }
 };
